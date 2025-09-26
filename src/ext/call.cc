@@ -766,14 +766,17 @@ NAN_METHOD(Call::CancelWithStatus) {
      * cancel should just complete silently */
     return;
   }
-  grpc_status_code code =
-      static_cast<grpc_status_code>(Nan::To<uint32_t>(info[0]).FromJust());
-  if (code == GRPC_STATUS_OK) {
+  const uint32_t code_value =
+      Nan::To<uint32_t>(info[0]).FromJust();
+  const grpc_status_code status_code =
+      static_cast<grpc_status_code>(code_value);
+  if (status_code == GRPC_STATUS_OK) {
     return Nan::ThrowRangeError(
         "cancelWithStatus cannot be called with OK status");
   }
   Utf8String details(info[1]);
-  grpc_call_cancel_with_status(call->wrapped_call, code, *details, NULL);
+  grpc_call_cancel_with_status(call->wrapped_call, status_code, *details,
+                               nullptr);
 }
 
 NAN_METHOD(Call::GetPeer) {
