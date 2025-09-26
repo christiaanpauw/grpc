@@ -10,7 +10,7 @@
 #define RGRPC_LOG(x) 
 #endif
 
-#define RESERVED NULL
+#define RESERVED nullptr
 
 #endif
 
