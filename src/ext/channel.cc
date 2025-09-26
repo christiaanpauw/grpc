@@ -180,7 +180,7 @@ NAN_METHOD(Channel::New) {
     }
     if (creds == NULL) {
       grpc_channel_credentials *insecure_creds =
-          grpc_insecure_credentials_create();
+          grpc_insecure_channel_credentials_create();
       if (insecure_creds == NULL) {
         DeallocateChannelArgs(channel_args_ptr);
         return Nan::ThrowError("Failed to create insecure channel credentials");
