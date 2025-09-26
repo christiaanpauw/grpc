@@ -179,6 +179,7 @@ NAN_METHOD(Channel::New) {
           "string keys and integer or string values");
     }
     if (creds == NULL) {
+#ifdef GRPC_SECURITY_SUPPORTS_CLIENT_CHANNEL_CREDS
       grpc_channel_credentials *insecure_creds =
           grpc_insecure_channel_credentials_create();
       if (insecure_creds == NULL) {
@@ -188,6 +189,10 @@ NAN_METHOD(Channel::New) {
       wrapped_channel =
           grpc_channel_create(*host, insecure_creds, channel_args_ptr);
       grpc_channel_credentials_release(insecure_creds);
+#else
+      wrapped_channel =
+          grpc_insecure_channel_create(*host, channel_args_ptr, NULL);
+#endif
     } else {
       wrapped_channel =
           grpc_secure_channel_create(creds, *host, channel_args_ptr, NULL);
