@@ -179,11 +179,22 @@ NAN_METHOD(Channel::New) {
           "string keys and integer or string values");
     }
     if (creds == NULL) {
+      grpc_channel_credentials *insecure_creds =
+          grpc_insecure_credentials_create();
+      if (insecure_creds == NULL) {
+        DeallocateChannelArgs(channel_args_ptr);
+        return Nan::ThrowError("Failed to create insecure channel credentials");
+      }
       wrapped_channel =
-          grpc_insecure_channel_create(*host, channel_args_ptr, NULL);
+          grpc_channel_create(*host, insecure_creds, channel_args_ptr);
+      grpc_channel_credentials_release(insecure_creds);
     } else {
       wrapped_channel =
           grpc_secure_channel_create(creds, *host, channel_args_ptr, NULL);
+    }
+    if (wrapped_channel == NULL) {
+      DeallocateChannelArgs(channel_args_ptr);
+      return Nan::ThrowError("Failed to create gRPC channel");
     }
     DeallocateChannelArgs(channel_args_ptr);
     Channel *channel = new Channel(wrapped_channel);
