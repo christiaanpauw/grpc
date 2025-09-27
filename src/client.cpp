@@ -4,6 +4,10 @@
 #include <grpc/impl/codegen/byte_buffer_reader.h>
 #include <grpc/slice.h>
 
+#ifndef GRPC_HAVE_GRPC_CHANNEL_CREATE
+#define GRPC_HAVE_GRPC_CHANNEL_CREATE 1
+#endif
+
 #include <cstring>
 #include <vector>
 
@@ -53,14 +57,20 @@ RawVector fetch(CharacterVector server, CharacterVector method, RawVector reques
   const grpc_slice *sp = &server_slice;
     
   grpc_channel *channel = NULL;
+#if defined(GRPC_SECURITY_SUPPORTS_CLIENT_CHANNEL_CREDS)
   grpc_channel_credentials *insecure_creds =
-      grpc_insecure_credentials_create();
+      grpc_insecure_channel_credentials_create();
   if (insecure_creds == NULL) {
     stop("Failed to create insecure channel credentials");
   }
 
   channel = grpc_channel_create(server[0], insecure_creds, NULL);
   grpc_channel_credentials_release(insecure_creds);
+#elif GRPC_HAVE_GRPC_CHANNEL_CREATE
+  channel = grpc_insecure_channel_create(server[0], NULL, NULL);
+#else
+#error "gRPC insecure channel helpers are unavailable. Verify your toolchain provides grpc_insecure_channel_credentials_create() or grpc_insecure_channel_create(); consult grpc_version_string() for supported releases."
+#endif
 
   if (channel == NULL) {
     stop("Failed to create gRPC channel");
