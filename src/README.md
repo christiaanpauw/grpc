@@ -18,11 +18,16 @@ The key translation units are:
 
 gRPC 1.51+ removed the legacy `grpc_insecure_channel_create()` and
 `grpc_server_add_insecure_http2_port()` helpers. The package now creates
-explicit insecure credentials via `grpc_insecure_credentials_create()` and
-`grpc_insecure_server_credentials_create()` before invoking
-`grpc_channel_create()`/`grpc_server_add_http2_port()`. This keeps the package
-compatible with modern gRPC releases while still targeting plaintext
-connections by default.
+explicit insecure credentials via
+`grpc_insecure_channel_credentials_create()`/`grpc_channel_create()` on the
+client and `grpc_insecure_server_credentials_create()`/`grpc_server_add_http2_port()`
+on the server. For older gRPC toolchains the client falls back to
+`grpc_insecure_channel_create()` when `GRPC_HAVE_GRPC_CHANNEL_CREATE` evaluates
+to a true-ish value (the macro defaults to `1` so legacy headers continue to
+compile). Setting `-DGRPC_HAVE_GRPC_CHANNEL_CREATE=0` in
+`PKG_CXXFLAGS` surfaces a compile-time diagnostic that points builders at
+`grpc_version_string()` when neither insecure helper is available, matching the
+new compile-time error message in `client.cpp`.
 
 ## Building the shared object
 
