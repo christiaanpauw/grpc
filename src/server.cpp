@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <grpc/grpc.h>
+#include <grpc/grpc_security.h>
 #include <grpc/impl/codegen/byte_buffer_reader.h>
 #include "common.h"
 #include <string>
@@ -75,7 +76,17 @@ List run(List target, CharacterVector hoststring, List hooks) {
   
   RGRPC_LOG("Bind");
 
-  int port = grpc_server_add_insecure_http2_port(server, hoststring[0]);
+  grpc_server_credentials* server_creds =
+      grpc_insecure_server_credentials_create();
+  if (server_creds == NULL) {
+    stop("Failed to create insecure server credentials");
+  }
+
+  int port = grpc_server_add_http2_port(server, hoststring[0], server_creds);
+  grpc_server_credentials_release(server_creds);
+  if (port == 0) {
+    stop("Failed to bind insecure gRPC server port");
+  }
   params["port"] = port;
   runFunctionIfProvided(hooks, "bind", params);
 
