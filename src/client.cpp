@@ -53,18 +53,14 @@ RawVector fetch(CharacterVector server, CharacterVector method, RawVector reques
   const grpc_slice *sp = &server_slice;
     
   grpc_channel *channel = NULL;
-#ifdef GRPC_SECURITY_SUPPORTS_CLIENT_CHANNEL_CREDS
   grpc_channel_credentials *insecure_creds =
-      grpc_insecure_channel_credentials_create();
+      grpc_insecure_credentials_create();
   if (insecure_creds == NULL) {
     stop("Failed to create insecure channel credentials");
   }
 
   channel = grpc_channel_create(server[0], insecure_creds, NULL);
   grpc_channel_credentials_release(insecure_creds);
-#else
-  channel = grpc_insecure_channel_create(server[0], NULL, NULL);
-#endif
 
   if (channel == NULL) {
     stop("Failed to create gRPC channel");
