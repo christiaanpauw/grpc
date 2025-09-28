@@ -328,7 +328,8 @@ List run(List target, CharacterVector hoststring, List hooks) {
   runFunctionIfProvided(hooks, "shutdown", params);
     grpc_server_shutdown_and_notify(server, queue, 0 /* tag */);
     grpc_server_cancel_all_calls(server);
-    grpc_completion_queue_next(queue, gpr_inf_future(GPR_CLOCK_REALTIME), NULL);
+    grpc_completion_queue_next(
+        queue, grpc::node::InfiniteFutureTimespec(GPR_CLOCK_REALTIME), NULL);
     grpc_server_destroy(server);
   RGRPC_LOG("[STOPPED]");
   runFunctionIfProvided(hooks, "stopped", params);  
