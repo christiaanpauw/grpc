@@ -81,7 +81,14 @@ collect_grpc_diagnostics <- function() {
   cflags_output <- if (!is.na(cflags_res$status) && cflags_res$status == 0L) cflags_res$output else ""
   includes <- extract_include_dirs(cflags_output)
   diag$include_dirs <- includes
-  header_checks <- lapply(includes, check_header_for_symbol, header = file.path("grpc", "grpc_security.h"), symbol = "grpc_insecure_credentials_create")
+  headers_to_probe <- c(file.path("grpc", "grpc_security.h"),
+                        file.path("grpc", "credentials.h"))
+  header_checks <- lapply(headers_to_probe, function(header) {
+    lapply(includes, check_header_for_symbol, header = header,
+           symbol = "grpc_insecure_credentials_create")
+  })
+  header_checks <- unlist(header_checks, recursive = FALSE)
+  diag$headers_to_probe <- headers_to_probe
   diag$header_checks <- header_checks
   diag$symbol_found <- any(vapply(header_checks, `[[`, logical(1), "has_symbol"))
 
