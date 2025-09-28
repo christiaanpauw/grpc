@@ -10,7 +10,7 @@
 grpc_diagnostics <- function() {
   tool_path <- system.file("tools", "grpc_diagnostics.R", package = "grpc")
   if (!nzchar(tool_path)) {
-    stop("Unable to locate diagnostic helper in installed package.")
+    tool_path <- file.path("inst", "tools", "grpc_diagnostics.R")
   }
   env <- new.env(parent = baseenv())
   sys.source(tool_path, envir = env)
