@@ -26,6 +26,8 @@ namespace node {
 
 double TimespecToMilliseconds(gpr_timespec time);
 gpr_timespec MillisecondsToTimespec(double millis);
+gpr_timespec InfiniteFutureTimespec(gpr_clock_type clock_type);
+gpr_timespec InfinitePastTimespec(gpr_clock_type clock_type);
 
 }  // namespace node
 }  // namespace grpc
