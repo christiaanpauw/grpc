@@ -218,7 +218,8 @@ void node_log_func(gpr_log_func_args *args) {
   memcpy(message, args->message, message_len);
   memcpy(&args_copy->core_args, args, sizeof(gpr_log_func_args));
   args_copy->core_args.message = message;
-  args_copy->timestamp = gpr_now(GPR_CLOCK_REALTIME);
+  args_copy->timestamp =
+      gpr_convert_clock_type(gpr_time_0(GPR_TIMESPAN), GPR_CLOCK_REALTIME);
 
   uv_mutex_lock(&grpc_logger_state.mutex);
   grpc_logger_state.pending_args->push(args_copy);
