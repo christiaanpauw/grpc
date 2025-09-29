@@ -6,6 +6,7 @@
 #  endif
 #endif
 #include <grpc/grpc_security.h>
+#include <grpc/support/time.h>
 
 #include <grpc/impl/codegen/byte_buffer_reader.h>
 #include <grpc/slice.h>
@@ -74,7 +75,9 @@ RawVector fetch(CharacterVector server, CharacterVector method, RawVector reques
     stop("Failed to create gRPC channel");
   }
   
-  gpr_timespec deadline = gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(5000, GPR_TIMESPAN));
+  gpr_timespec deadline =
+      gpr_convert_clock_type(gpr_time_from_millis(5000, GPR_TIMESPAN),
+                              GPR_CLOCK_REALTIME);
   
   RGRPC_LOG("Create Call");
   c = grpc_channel_create_call(

@@ -128,8 +128,9 @@ List run(List target, CharacterVector hoststring, List hooks) {
     grpc_server_request_call(server, &call,
                              &details, &request_meta, queue, queue, NULL);
     // event = grpc_completion_queue_next(queue, gpr_inf_past(GPR_CLOCK_MONOTONIC),NULL);
-    gpr_timespec c_increment = gpr_time_from_millis(_INTERRUPT_CHECK_PERIOD_MS, GPR_TIMESPAN);
-    gpr_timespec c_timeout = gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), c_increment);
+    gpr_timespec c_increment =
+        gpr_time_from_millis(_INTERRUPT_CHECK_PERIOD_MS, GPR_TIMESPAN);
+    gpr_timespec c_timeout = gpr_convert_clock_type(c_increment, GPR_CLOCK_REALTIME);
 
     event = grpc_completion_queue_next(queue, c_timeout, RESERVED);
 

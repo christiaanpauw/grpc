@@ -28,28 +28,7 @@ constexpr int32_t kNanosPerSecond = 1000000000;
 constexpr int32_t kMaxFiniteNanos = kNanosPerSecond - 1;
 
 gpr_timespec ConvertClockType(gpr_timespec t, gpr_clock_type clock_type) {
-  if (t.clock_type == clock_type) {
-    return t;
-  }
-
-  const auto kInt64Max = std::numeric_limits<int64_t>::max();
-  const auto kInt64Min = std::numeric_limits<int64_t>::min();
-
-  if (t.tv_sec == kInt64Max || t.tv_sec == kInt64Min) {
-    t.clock_type = clock_type;
-    return t;
-  }
-
-  if (clock_type == GPR_TIMESPAN) {
-    return gpr_time_sub(t, gpr_now(t.clock_type));
-  }
-
-  if (t.clock_type == GPR_TIMESPAN) {
-    return gpr_time_add(gpr_now(clock_type), t);
-  }
-
-  return gpr_time_add(gpr_now(clock_type),
-                      gpr_time_sub(t, gpr_now(t.clock_type)));
+  return gpr_convert_clock_type(t, clock_type);
 }
 
 gpr_timespec MakeInfiniteTimespec(bool future, gpr_clock_type clock_type) {
