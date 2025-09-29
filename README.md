@@ -6,15 +6,39 @@ An **R** library for [**GRPC**](https://grpc.io/) a high-performance, open-sourc
 
 ### Pre-requisites
 
-The following is copied from [gRPC C++ - Building from source](https://github.com/grpc/grpc/blob/master/BUILDING.md)
+The R package links against the upstream gRPC C core libraries.  On
+recent Ubuntu releases the required toolchain can be installed from the
+distribution packages without building gRPC manually:
+
 ```shell
-sudo apt-get install build-essential autoconf libtool pkg-config
-## If you plan to build from source and run tests, install the following as well:
-sudo apt-get install libgflags-dev libgtest-dev
-sudo apt-get install clang libc++-dev
+sudo apt-get update
+sudo apt-get install -y \
+  build-essential autoconf libtool pkg-config cmake \
+  libgflags-dev libgtest-dev clang libc++-dev \
+  libgrpc++-dev libgrpc-dev protobuf-compiler-grpc
 ```
 
-### Download and Install grpc
+The package also depends on `gpr`, the gRPC support runtime.  Recent
+versions of the upstream `grpc` package no longer link this library
+automatically on some platforms (notably macOS), which results in
+runtime errors such as:
+
+```
+Error: package or namespace load failed for ‘grpc’ in dyn.load(...):
+ unable to load shared object '.../grpc/libs/grpc.so':
+  dlopen(.../grpc.so, 0x0006): symbol not found in flat namespace '_gpr_convert_clock_type'
+```
+
+The build system now links `libgpr` explicitly, so the symbol is
+resolved when the package is loaded.  When using other operating
+systems ensure that gRPC and the accompanying support libraries are
+available through `pkg-config`.
+
+### Optional: build gRPC from source
+
+If distribution packages are unavailable, the following steps mirror
+the upstream instructions for building gRPC manually:
+
 ```shell
 export GRPC_INSTALL_DIR=$HOME/.local
 mkdir -p $GRPC_INSTALL_DIR
@@ -71,7 +95,7 @@ There are runnable examples in the `demo/` folder.
 ### Hello, World!
 
 To start a HelloWorld server:
-  
+
     R -e 'demo("helloserver", "grpc")'
 
 Or with much more detailed logging:
@@ -81,8 +105,20 @@ Or with much more detailed logging:
 To run a client against a running HelloWorld server:
   
     R -e 'demo("helloclient", "grpc")'
-    
+
 Both are cross compatible with the Node, Python and C++ Greeter examples provided by the grpc library.
+
+### Running package self-checks
+
+After installing the system dependencies and building the package you can
+confirm that the shared library links correctly by running:
+
+```shell
+R -q -e 'library(grpc); grpc_version()'
+```
+
+This will print the detected gRPC runtime version and ensures that the
+`_gpr_convert_clock_type` symbol is resolved.
 
 ### Health check
 

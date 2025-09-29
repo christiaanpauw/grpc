@@ -1,4 +1,4 @@
 CXX_STD = CXX17
-PKG_LIBS = `pkg-config --libs grpc`
+PKG_LIBS = `pkg-config --libs grpc gpr`
 PKG_CXXFLAGS = `pkg-config --cflags grpc`
 
