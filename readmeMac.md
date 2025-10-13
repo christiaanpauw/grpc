@@ -39,6 +39,31 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 Adjust the paths if you are using an Intel machine (`/usr/local`) or a custom installation prefix. After updating the environment you can verify the configuration with `pkg-config --modversion grpc`.
 
+## Confirming that Homebrew installed Apple silicon binaries
+
+When the linker reports messages such as
+
+```
+ld: warning: ignoring file '/usr/local/Cellar/grpc/<version>/lib/libgrpc.dylib': found architecture 'x86_64', required architecture 'arm64'
+```
+
+it usually means that Homebrew installed x86_64 (Intel) binaries while you are compiling on an Apple silicon system. The resulting build may also fail to load the shared library with errors similar to `symbol not found in flat namespace '_gpr_convert_clock_type'`.
+
+You can confirm the architecture of Homebrew's artifacts with the `file` utility. Replace the paths below with the directories that `pkg-config --libs grpc` reported on your machine:
+
+```sh
+file /usr/local/Cellar/grpc/*/lib/libgrpc.dylib
+file /usr/local/Cellar/abseil/*/lib/libabsl_statusor.dylib
+```
+
+If the output mentions `x86_64` only, reinstall the packages with an Apple silicon prefix. For the default Homebrew configuration this is as simple as ensuring that you invoke the arm64 version of Homebrew:
+
+```sh
+/opt/homebrew/bin/brew reinstall grpc abseil --build-from-source
+```
+
+If you previously set Homebrew up under Rosetta, run `arch -arm64 /opt/homebrew/bin/brew doctor` to confirm that your environment no longer mixes architectures. After reinstalling, rerun `inst/tools/grpc_diagnostics.R` to verify that the helper now reports `matches expected architecture: TRUE` for each gRPC library.
+
 ## Installing the R package
 
 Once the diagnostics report confirms that the symbol is present in one of the inspected headers, install the R package from the repository root:
