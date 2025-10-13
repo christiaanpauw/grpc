@@ -99,7 +99,29 @@ walkthrough; the summary below highlights the recommended steps.
    Intel machines using the default prefix should switch `/opt/homebrew`
    for `/usr/local`.
 
-3. Install the package once the diagnostics succeed:
+3. When Homebrew previously installed gRPC via Rosetta the discovered
+   libraries may still target `x86_64`. Remove the stale copies and
+   reinstall the packages natively so that `pkg-config` reports `arm64`
+   libraries before rebuilding the R package:
+
+   ```sh
+   # remove universal/Rosetta artefacts
+   arch -arm64 brew uninstall --ignore-dependencies grpc abseil protobuf
+   arch -arm64 brew cleanup grpc abseil protobuf
+
+   # reinstall with the Apple Silicon toolchain
+   arch -arm64 brew reinstall grpc abseil protobuf --build-from-source
+
+   # double-check pkg-config now points at /opt/homebrew/lib/pkgconfig
+   pkg-config --variable=pc_path pkg-config
+   pkg-config --libs grpc
+   ```
+
+   The diagnostic helper will also flag architecture mismatches in the
+   **Library architecture inspection** and **Actionable findings**
+   sections.
+
+4. Install the package once the diagnostics succeed:
 
    ```sh
    R CMD INSTALL --install-tests .
