@@ -70,7 +70,45 @@ sudo make install
 popd
 ```
 
-# Original 
+## Installation - macOS
+
+The package also builds cleanly on macOS when Homebrew's gRPC formulae
+are available. The `readmeMac.md` document contains a detailed
+walkthrough; the summary below highlights the recommended steps.
+
+1. From the repository root run the diagnostic helper to ensure that
+   `pkg-config` can locate the gRPC headers and libraries:
+
+   ```sh
+   Rscript inst/tools/grpc_diagnostics.R
+   ```
+
+   Review the **Header inspection** section of the report – at least one
+   of `grpc/grpc_security.h` or `grpc/credentials.h` should expose
+   `grpc_insecure_credentials_create`.
+
+2. If the helper cannot locate gRPC, update your environment so that
+   `pkg-config` resolves Homebrew's installation prefix. On Apple Silicon
+   machines this usually means:
+
+   ```sh
+   export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
+   export PATH="/opt/homebrew/bin:$PATH"
+   ```
+
+   Intel machines using the default prefix should switch `/opt/homebrew`
+   for `/usr/local`.
+
+3. Install the package once the diagnostics succeed:
+
+   ```sh
+   R CMD INSTALL --install-tests .
+   ```
+
+You can rerun the diagnostics inside R with `grpc::grpc_diagnostics()`
+if you need to capture the output for an issue report.
+
+# Original
 
 [![Build Status](https://travis-ci.org/nfultz/grpc.svg)](https://travis-ci.org/nfultz/grpc)
 
