@@ -59,6 +59,58 @@ extract_include_dirs <- function(cflags_output) {
   includes[nzchar(includes)]
 }
 
+extract_library_dirs <- function(libs_output) {
+  if (is.null(libs_output) || !nzchar(libs_output)) {
+    return(character())
+  }
+  tokens <- unlist(strsplit(libs_output, "\\s+"))
+  dirs <- tokens[startsWith(tokens, "-L")]
+  dirs <- sub("^-L", "", dirs)
+  unique(dirs[nzchar(dirs)])
+}
+
+extract_library_names <- function(libs_output) {
+  if (is.null(libs_output) || !nzchar(libs_output)) {
+    return(character())
+  }
+  tokens <- unlist(strsplit(libs_output, "\\s+"))
+  libs <- tokens[startsWith(tokens, "-l")]
+  libs <- sub("^-l", "", libs)
+  unique(libs[nzchar(libs)])
+}
+
+locate_library_file <- function(lib_name, search_dirs) {
+  candidates <- c(
+    sprintf("lib%s.dylib", lib_name),
+    sprintf("lib%s.so", lib_name),
+    sprintf("lib%s.a", lib_name)
+  )
+  for (dir in search_dirs) {
+    for (candidate in candidates) {
+      path <- file.path(dir, candidate)
+      if (file.exists(path)) {
+        return(path)
+      }
+    }
+  }
+  NA_character_
+}
+
+check_library_architecture <- function(library_path, expected_arch) {
+  if (!nzchar(library_path) || is.na(library_path)) {
+    return(list(path = library_path, exists = FALSE, matches = NA, output = "Library not found"))
+  }
+  if (!file.exists(library_path)) {
+    return(list(path = library_path, exists = FALSE, matches = NA, output = "Library not found"))
+  }
+  file_info <- run_cmd("file", library_path)
+  matches <- NA
+  if (!is.na(file_info$status) && file_info$status == 0L && nzchar(expected_arch)) {
+    matches <- grepl(expected_arch, file_info$output, fixed = TRUE)
+  }
+  list(path = library_path, exists = TRUE, matches = matches, output = file_info$output, status = file_info$status)
+}
+
 check_header_for_symbol <- function(include_dir, header, symbol) {
   path <- file.path(include_dir, header)
   if (!file.exists(path)) {
@@ -119,6 +171,21 @@ collect_grpc_diagnostics <- function() {
   diag$headers_to_probe <- headers_to_probe
   diag$header_checks <- header_checks
   diag$symbol_found <- any(vapply(header_checks, `[[`, logical(1), "has_symbol"))
+
+  libs_res <- diag$pkg_config$grpc$libs
+  libs_output <- if (!is.na(libs_res$status) && libs_res$status == 0L) libs_res$output else ""
+  lib_dirs <- extract_library_dirs(libs_output)
+  lib_names <- extract_library_names(libs_output)
+  diag$library_dirs <- lib_dirs
+  diag$library_names <- lib_names
+
+  expected_arch <- diag$sys_info$machine
+  library_arch_checks <- lapply(lib_names, function(lib) {
+    path <- locate_library_file(lib, lib_dirs)
+    check_library_architecture(path, expected_arch)
+  })
+  names(library_arch_checks) <- lib_names
+  diag$library_architecture <- library_arch_checks
 
   diag
 }
@@ -184,6 +251,28 @@ print_grpc_diagnostics <- function(diag) {
     }
   }
   cat("Symbol 'grpc_insecure_credentials_create' available:", diag$symbol_found, "\n")
+
+  format_section("Library architecture inspection")
+  if (length(diag$library_architecture) == 0L) {
+    cat("No libraries were resolved from pkg-config output.\n")
+  } else {
+    cat("Expected architecture:", diag$sys_info$machine, "\n\n")
+    for (lib in names(diag$library_architecture)) {
+      check <- diag$library_architecture[[lib]]
+      cat("Library:", lib, "\n")
+      cat("  path:", ifelse(is.na(check$path), "<not found>", check$path), "\n")
+      cat("  exists:", ifelse(isTRUE(check$exists), "TRUE", "FALSE"), "\n")
+      if (!is.null(check$status)) {
+        cat("  file status:", check$status, "\n")
+      }
+      cat("  matches expected architecture:", ifelse(is.na(check$matches), "<unknown>", check$matches), "\n")
+      if (nzchar(check$output)) {
+        cat("  file output:\n")
+        cat(paste0("    ", strsplit(check$output, "\n", fixed = TRUE)[[1]], collapse = "\n"), "\n")
+      }
+      cat("\n")
+    }
+  }
   invisible(diag)
 }
 
