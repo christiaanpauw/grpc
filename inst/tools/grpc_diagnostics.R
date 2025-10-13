@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-run_cmd <- function(cmd, args) {
+run_cmd <- function(cmd, args = character()) {
   path <- unname(Sys.which(cmd))
   if (!nzchar(path)) {
     return(list(
@@ -10,25 +10,43 @@ run_cmd <- function(cmd, args) {
       executable = NA
     ))
   }
-  output <- tryCatch(
-    system2(path, args, stdout = TRUE, stderr = TRUE),
-    warning = function(w) {
-      structure(paste("Warning:", conditionMessage(w)), status = 1L)
-    },
-    error = function(e) {
-      structure(paste("Error:", conditionMessage(e)), status = 1L)
-    }
-  )
+  cmd_args <- if (length(args) == 1L && length(grep("\\s", args, perl = TRUE)) == 1L) {
+    strsplit(args, "\\s+", perl = TRUE)[[1]]
+  } else {
+    args
+  }
+  captured_warning <- NULL
+  output <- tryCatch({
+    withCallingHandlers(
+      system2(path, cmd_args, stdout = TRUE, stderr = TRUE),
+      warning = function(w) {
+        captured_warning <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+  },
+  error = function(e) {
+    structure(paste("Error:", conditionMessage(e)), status = 1L)
+  })
   status <- attr(output, "status")
   if (is.null(status)) {
     status <- 0L
+  }
+  output_text <- if (length(output) == 0L) "" else paste(output, collapse = "\n")
+  if (!is.null(captured_warning) && nzchar(captured_warning)) {
+    warning_text <- paste("Warning:", captured_warning)
+    if (nzchar(output_text)) {
+      output_text <- paste(output_text, warning_text, sep = "\n")
+    } else {
+      output_text <- warning_text
+    }
   }
   is_exec <- tryCatch(
     file.access(path, 1L) == 0L,
     warning = function(...) NA,
     error = function(...) NA
   )
-  list(path = path, status = status, output = paste(output, collapse = "\n"), executable = is_exec)
+  list(path = path, status = status, output = output_text, executable = is_exec)
 }
 
 extract_include_dirs <- function(cflags_output) {
@@ -69,8 +87,8 @@ collect_grpc_diagnostics <- function() {
     if (!is.na(res$status) && res$status != 0L && cmd == "grpc_cpp_plugin") {
       # try --help to capture version banner for plugins without --version
       res_help <- run_cmd(cmd, "--help")
-      if (!is.na(res_help$status)) {
-        res$output <- paste(res$output, res_help$output, sep = "\n")
+      if (!is.na(res_help$status) && nzchar(res_help$output)) {
+        res$output <- paste(res$output, res_help$output, sep = if (nzchar(res$output)) "\n" else "")
       }
     }
     res
