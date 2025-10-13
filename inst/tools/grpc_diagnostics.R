@@ -187,6 +187,34 @@ collect_grpc_diagnostics <- function() {
   names(library_arch_checks) <- lib_names
   diag$library_architecture <- library_arch_checks
 
+  issues <- character()
+
+  pkg_config_exec <- diag$executables[["pkg-config"]]
+  if (is.na(pkg_config_exec$path) || is.na(pkg_config_exec$status) || pkg_config_exec$status != 0L) {
+    issues <- c(issues, "pkg-config is unavailable or returned a non-zero status")
+  }
+
+  if (length(library_arch_checks)) {
+    missing_arch <- vapply(library_arch_checks, function(check) {
+      isTRUE(check$exists) && isFALSE(check$matches)
+    }, logical(1))
+    unknown_arch <- vapply(library_arch_checks, function(check) {
+      isTRUE(check$exists) && is.na(check$matches)
+    }, logical(1))
+    if (any(missing_arch)) {
+      issues <- c(issues, paste0("Library architecture mismatch for: ", paste(names(library_arch_checks)[missing_arch], collapse = ", ")))
+    }
+    if (any(unknown_arch)) {
+      issues <- c(issues, paste0("Unable to determine library architecture for: ", paste(names(library_arch_checks)[unknown_arch], collapse = ", ")))
+    }
+  }
+
+  if (!diag$symbol_found) {
+    issues <- c(issues, "Failed to locate grpc_insecure_credentials_create in probed headers")
+  }
+
+  diag$issues <- unique(issues)
+
   diag
 }
 
@@ -273,6 +301,16 @@ print_grpc_diagnostics <- function(diag) {
       cat("\n")
     }
   }
+
+  format_section("Actionable findings")
+  if (length(diag$issues) == 0L) {
+    cat("No immediate issues detected by the helper.\n")
+  } else {
+    for (issue in diag$issues) {
+      cat("-", issue, "\n")
+    }
+  }
+
   invisible(diag)
 }
 
