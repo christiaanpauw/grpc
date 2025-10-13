@@ -3,7 +3,12 @@
 run_cmd <- function(cmd, args) {
   path <- unname(Sys.which(cmd))
   if (!nzchar(path)) {
-    return(list(path = NA_character_, status = NA_integer_, output = sprintf("Executable '%s' not found in PATH", cmd)))
+    return(list(
+      path = NA_character_,
+      status = NA_integer_,
+      output = sprintf("Executable '%s' not found in PATH", cmd),
+      executable = NA
+    ))
   }
   output <- tryCatch(
     system2(path, args, stdout = TRUE, stderr = TRUE),
@@ -18,7 +23,12 @@ run_cmd <- function(cmd, args) {
   if (is.null(status)) {
     status <- 0L
   }
-  list(path = path, status = status, output = paste(output, collapse = "\n"))
+  is_exec <- tryCatch(
+    file.access(path, 1L) == 0L,
+    warning = function(...) NA,
+    error = function(...) NA
+  )
+  list(path = path, status = status, output = paste(output, collapse = "\n"), executable = is_exec)
 }
 
 extract_include_dirs <- function(cflags_output) {
@@ -117,7 +127,9 @@ print_grpc_diagnostics <- function(diag) {
   format_section("Executable discovery")
   for (cmd in names(diag$executables)) {
     res <- diag$executables[[cmd]]
-    cat("-", cmd, "\n  path:", ifelse(is.na(res$path), "<not found>", res$path), "\n  status:", res$status, "\n  output:\n")
+    cat("-", cmd, "\n  path:", ifelse(is.na(res$path), "<not found>", res$path),
+        "\n  executable:", ifelse(is.na(res$executable), "<unknown>", res$executable),
+        "\n  status:", res$status, "\n  output:\n")
     cat(paste0("    ", strsplit(res$output, "\n", fixed = TRUE)[[1]], collapse = "\n"), "\n\n", sep = "")
   }
 
