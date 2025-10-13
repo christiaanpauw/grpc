@@ -130,6 +130,54 @@ walkthrough; the summary below highlights the recommended steps.
 You can rerun the diagnostics inside R with `grpc::grpc_diagnostics()`
 if you need to capture the output for an issue report.
 
+## Installation - Windows
+
+Building the package on Windows requires R (≥ 4.3) together with the
+Rtools toolchain so that `pkg-config` can locate the gRPC headers and
+libraries. The steps below assume a default Rtools installation in
+`C:\rtools43`:
+
+1. Install [Rtools 4.3](https://cran.r-project.org/bin/windows/Rtools/)
+   with the UCRT64 toolchain. Launch the "Rtools43 UCRT64" shell (or a
+   regular PowerShell session) and ensure that
+   `C:\rtools43\ucrt64\bin` is on your `PATH` before building the
+   package.
+
+2. Refresh the MSYS2 package database and install the gRPC dependencies
+   that provide the development headers:
+
+   ```sh
+   pacman -Syu --noconfirm
+   pacman -S --needed \
+     mingw-w64-ucrt-x86_64-grpc \
+     mingw-w64-ucrt-x86_64-protobuf \
+     mingw-w64-ucrt-x86_64-abseil \
+     mingw-w64-ucrt-x86_64-pkgconf
+   ```
+
+   Reopen the shell after `pacman -Syu` if it asks you to do so.
+
+3. Run the Windows diagnostic helper to confirm that `pkg-config`
+   resolves the libraries correctly:
+
+   ```powershell
+   # from the repository root
+   powershell -ExecutionPolicy Bypass -File inst/tools/grpc_diagnostics_windows.ps1 -ShowPaths
+   ```
+
+   The script reports the detected toolchain, the `pkg-config`
+   search path, and whether the `grpc`, `protobuf`, and `gpr`
+   modules are available. Follow the actionable suggestions at the end
+   of the report to install any missing components.
+
+4. Once the diagnostics succeed, build and install the R package from
+   an Rtools UCRT64 shell so that the toolchain matches the installed
+   libraries:
+
+   ```sh
+   R CMD INSTALL --install-tests .
+   ```
+
 # Original
 
 [![Build Status](https://travis-ci.org/nfultz/grpc.svg)](https://travis-ci.org/nfultz/grpc)
