@@ -121,6 +121,41 @@ walkthrough; the summary below highlights the recommended steps.
    **Library architecture inspection** and **Actionable findings**
    sections.
 
+### Resolving library architecture mismatches
+
+If the diagnostic report lists an "Actionable finding" similar to
+`Library architecture mismatch for: grpc, ...`, the libraries discovered
+by `pkg-config` were compiled for a different CPU architecture than the
+one reported by `uname -m`. This situation most commonly occurs on
+Apple Silicon when Homebrew previously installed the gRPC toolchain via
+Rosetta (`x86_64`). To resolve it:
+
+1. Remove the Rosetta builds of gRPC, Abseil, and Protobuf:
+
+   ```sh
+   arch -arm64 brew uninstall --ignore-dependencies grpc abseil protobuf
+   arch -arm64 brew cleanup grpc abseil protobuf
+   ```
+
+2. Reinstall the formulae natively so that `pkg-config` exposes `arm64`
+   archives:
+
+   ```sh
+   arch -arm64 brew reinstall grpc abseil protobuf --build-from-source
+   ```
+
+3. Confirm that `pkg-config` now resolves the Apple Silicon prefix and
+   reports `arm64` libraries:
+
+   ```sh
+   export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
+   pkg-config --libs grpc
+   ```
+
+4. Rerun `Rscript inst/tools/grpc_diagnostics.R` to verify that the
+   **Library architecture inspection** section now reports
+   `matches expected architecture: TRUE` for each library.
+
 4. Install the package once the diagnostics succeed:
 
    ```sh
