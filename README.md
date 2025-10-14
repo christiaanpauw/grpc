@@ -178,6 +178,35 @@ libraries. The steps below assume a default Rtools installation in
    R CMD INSTALL --install-tests .
    ```
 
+## Installation - Docker
+
+The repository includes Dockerfiles that bundle the package together
+with its native dependencies. This is useful when you want to try the
+library without configuring gRPC locally or when you need a reproducible
+environment for testing.
+
+* `inst/docker_stable/Dockerfile` starts from the `rocker/r-devel`
+  image and installs the latest released version of the package from
+  GitHub. Build and use it with:
+
+  ```sh
+  docker build -f inst/docker_stable/Dockerfile -t grpc-r:stable .
+  docker run --rm -it grpc-r:stable R -q
+  ```
+
+* `inst/docker_dev/Dockerfile` bootstraps gRPC and its dependencies from
+  source before installing the package. This image is heavier but lets
+  you experiment with upstream changes:
+
+  ```sh
+  docker build -f inst/docker_dev/Dockerfile -t grpc-r:dev .
+  docker run --rm -it grpc-r:dev R -q
+  ```
+
+Mount a local directory into the container (for example,
+`-v "$PWD":/workspace`) if you want to edit files on the host and run
+them inside the container.
+
 # Original
 
 [![Build Status](https://travis-ci.org/nfultz/grpc.svg)](https://travis-ci.org/nfultz/grpc)
