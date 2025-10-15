@@ -1,4 +1,12 @@
-CXX_STD = CXX17
-PKG_LIBS = `pkg-config --libs grpc gpr`
-PKG_CXXFLAGS = `pkg-config --cflags grpc`
+# src/Makevars  (macOS / Unix)
 
+## Use C++17 (adjust if your package needs a different standard)
+CXX_STD = CXX17
+
+## Include flags (applied to BOTH C and C++ compilation steps)
+## grpc++ includes headers for the C++ API; harmless if you only use C.
+PKG_CPPFLAGS += $(shell pkg-config --cflags grpc grpc++)
+
+## Link flags. Order matters: grpc++ first, then grpc.
+## (These pull in protobuf/abseil/etc. transitively via .pc files.)
+PKG_LIBS += $(shell pkg-config --libs grpc++ grpc)
