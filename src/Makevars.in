@@ -1,0 +1,9 @@
+# src/Makevars.in -- template for configure to populate.
+#
+# This file documents the intended structure of the generated Makevars.
+# The configure script resolves pkg-config flags at installation time and
+# writes src/Makevars with concrete values.
+
+CXX_STD = CXX17
+PKG_CPPFLAGS = @PKG_CPPFLAGS@
+PKG_LIBS = @PKG_LIBS@

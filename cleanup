@@ -1,0 +1,3 @@
+#!/bin/sh
+# cleanup script removes configure-generated artifacts
+rm -f src/Makevars

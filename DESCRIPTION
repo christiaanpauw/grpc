@@ -4,13 +4,11 @@ Title: gRPC Library
 Version: 0.2.0
 Author: Neal Fultz, Google
 Maintainer: Neal Fultz <nfultz@gmail.com>
-Description: Client and server scaffolding for Google's Remote Procedure Call framework
+Description: Provides client and server scaffolding for Google's Remote Procedure Call (gRPC) framework.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
 Imports:
     methods,
-    Rcpp (>= 0.12.5),
     RProtoBuf,
     futile.logger
 Suggests:
@@ -20,4 +18,4 @@ LinkingTo: Rcpp
 SystemRequirements: 
     grpc (>= 4.0.0)
     protobuf
-RoxygenNote: 6.0.1
+RoxygenNote: 7.3.2

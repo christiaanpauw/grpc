@@ -36,7 +36,7 @@ start_server <- function(impl, channel, hooks = grpc_default_hooks()) {
 #'
 #' @param ... threaded through to the ProtoBuf constructor
 #' @param WFUN A GRPC service method with RequestType and ResponseType attributes
-#' @return
+#' @return A ProtoBuf message instance of the method's response type.
 #'
 #' @export
 #' @importFrom RProtoBuf P new
