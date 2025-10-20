@@ -3,10 +3,8 @@
 ## Use C++17 (adjust if your package needs a different standard)
 CXX_STD = CXX17
 
-## Include flags (applied to BOTH C and C++ compilation steps)
-## grpc++ includes headers for the C++ API; harmless if you only use C.
-PKG_CPPFLAGS += $(shell pkg-config --cflags grpc grpc++)
+## Query pkg-config for gRPC headers, dropping non-portable -Wno* flags.
+PKG_CPPFLAGS = $(shell pkg-config --cflags grpc grpc++ | sed -E 's/(^| )-Wno-[^ ]+//g')
 
 ## Link flags. Order matters: grpc++ first, then grpc.
-## (These pull in protobuf/abseil/etc. transitively via .pc files.)
-PKG_LIBS += $(shell pkg-config --libs grpc++ grpc)
+PKG_LIBS = $(shell pkg-config --libs grpc++ grpc)

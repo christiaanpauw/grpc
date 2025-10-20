@@ -1,6 +1,6 @@
 #' Build a client handle
 #' 
-#' @param stubs the stub of the service
+#' @param impl the service stub definitions generated from the proto
 #' @param channel what to connect to
 #' @return client handle
 #' @importFrom RProtoBuf P serialize read new

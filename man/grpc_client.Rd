@@ -7,9 +7,9 @@
 grpc_client(impl, channel)
 }
 \arguments{
-\item{channel}{what to connect to}
+\item{impl}{the service stub definitions generated from the proto}
 
-\item{stubs}{the stub of the service}
+\item{channel}{what to connect to}
 }
 \value{
 client handle
