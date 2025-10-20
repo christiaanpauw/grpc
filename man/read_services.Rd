@@ -7,7 +7,7 @@
 read_services(file)
 }
 \arguments{
-\item{file}{the spec file}
+\item{file}{path to the proto spec file}
 }
 \value{
 a stub data structure

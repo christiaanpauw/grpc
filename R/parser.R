@@ -1,6 +1,6 @@
 #' Create stub object from protobuf spec
 #' 
-#' @param file the spec file
+#' @param file path to the proto spec file
 #' @return a stub data structure
 #' @importFrom RProtoBuf readProtoFiles
 #' @export
@@ -10,6 +10,10 @@ read_services <- function(file){
   RETURNS = "returns"
   STREAM = "stream"
   PACKAGE = "package"
+
+  file_path <- normalizePath(file, mustWork = TRUE)
+  file_dir <- dirname(file_path)
+  file_name <- basename(file_path)
 
   services <- list()
   pkg <- ""
@@ -55,9 +59,9 @@ read_services <- function(file){
     return(i)
   }
 
-  readProtoFiles(file)
+  readProtoFiles(file_name, dir = file_dir)
 
-  lines <- readLines(file)
+  lines <- readLines(file_path)
 
   tokens <- Filter(f=nchar, unlist(strsplit(lines, '(^//.*$|\\s+|(?=[{}();]))', perl=TRUE)))
 
