@@ -1,0 +1,8 @@
+grpc_client             Build a client handle
+grpc_default_hooks      Provides a list of logging functions to be
+                        passed to gRPC server
+grpc_diagnostics        Collect build diagnostics for the grpc package
+grpc_version            Check grpc version
+newResponse             Construct a new ProtoBuf of ResponseType
+read_services           Create stub object from protobuf spec
+start_server            Start a gRPC server

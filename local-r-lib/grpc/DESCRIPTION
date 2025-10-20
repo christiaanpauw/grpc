@@ -1,0 +1,17 @@
+Package: grpc
+Type: Package
+Title: gRPC Library
+Version: 0.2.0
+Author: Neal Fultz, Google
+Maintainer: Neal Fultz <nfultz@gmail.com>
+Description: Client and server scaffolding for Google's Remote Procedure Call framework
+License: GPL-3
+Encoding: UTF-8
+Imports: methods, Rcpp (>= 0.12.5), RProtoBuf, futile.logger
+Suggests: testthat, processx
+LinkingTo: Rcpp
+SystemRequirements: grpc (>= 4.0.0) protobuf
+RoxygenNote: 6.0.1
+NeedsCompilation: yes
+Packaged: 2025-10-20 09:26:57 UTC; christiaanpauw
+Built: R 4.3.2; aarch64-apple-darwin20; 2025-10-20 09:27:48 UTC; unix
