@@ -59,7 +59,7 @@ read_services <- function(file){
     return(i)
   }
 
-  readProtoFiles(file_name, dir = file_dir)
+  readProtoFiles(files = file_name, dir = file_dir)
 
   lines <- readLines(file_path)
 
